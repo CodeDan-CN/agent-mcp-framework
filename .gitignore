@@ -86,3 +86,4 @@ cover/
 *.log
 *.sqlite
 *.db
+.env
