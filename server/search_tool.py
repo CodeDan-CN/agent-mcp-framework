@@ -1,18 +1,21 @@
+from dotenv import load_dotenv
 from langchain_google_community import GoogleSearchAPIWrapper
 from langchain_community.utilities.bing_search import BingSearchAPIWrapper
 from mcp.server import FastMCP
 
 import os
-os.environ["HTTP_PROXY"] = "http://127.0.0.1:7890"
-os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7890"
-
+# os.environ["HTTP_PROXY"] = "http://127.0.0.1:7890"
+# os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7890"
+load_dotenv()  # 自动加载 .env 文件
+google_api_key = os.environ["GOOGLE_API_KEY"]
+google_cse_id = os.environ["GOOGLE_CSE_ID"]
 # Initialize FastMCP server
 mcp = FastMCP("Search")
 
 # 初始化搜索器（用你的 API Key 和 CSE ID）
 search = GoogleSearchAPIWrapper(
-    google_api_key="",
-    google_cse_id="",
+    google_api_key=google_api_key,
+    google_cse_id=google_cse_id,
     k=5  # 返回前5条结果
 )
 

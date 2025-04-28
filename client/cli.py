@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 from typing import Optional
 from contextlib import AsyncExitStack
 from mcp import ClientSession, StdioServerParameters
@@ -8,13 +9,16 @@ from dotenv import load_dotenv
 from OpeanAI4oMini import GPT4oMiniAdapter, ToolResultItem, UserQuery
 
 load_dotenv()  # load environment variables from .env
+api_key = os.environ["MODEL_API_KEY"]
+base_url = os.environ["MODEL_BASE_URL"]
+tool_path = os.environ["MCP_TOOL_PATH"]
 
 class MCPClient:
     def __init__(self):
         # Initialize session and client objects
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
-        self.model_adapter = GPT4oMiniAdapter(api_key="", base_url="")
+        self.model_adapter = GPT4oMiniAdapter(api_key=api_key, base_url=base_url)
 
     # methods will go here
 
@@ -165,7 +169,7 @@ async def main():
 
     client = MCPClient()
     try:
-        await client.connect_to_server("D:\\local\\pycharm\\mcp_demo\\server\\search_tool.py")
+        await client.connect_to_server(tool_path)
         # await client.connect_to_server("D:\\local\\pycharm\\mcp_demo\\server\\echo_server.py")
 
         await client.chat_loop()
