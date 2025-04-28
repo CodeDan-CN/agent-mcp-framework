@@ -14,7 +14,7 @@ class MCPClient:
         # Initialize session and client objects
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
-        self.model_adapter = GPT4oMiniAdapter(api_key="sk-LSciyPkKvZhVcZan5aC723Db21E5439c8a61C75a1b3b24C0", base_url="https://api.aigc369.com/v1")
+        self.model_adapter = GPT4oMiniAdapter(api_key="", base_url="")
 
     # methods will go here
 

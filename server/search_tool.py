@@ -11,8 +11,8 @@ mcp = FastMCP("Search")
 
 # 初始化搜索器（用你的 API Key 和 CSE ID）
 search = GoogleSearchAPIWrapper(
-    google_api_key="AIzaSyDNdYjUaLnbWLiaGHCzpc6No4pHv4LSC-0",
-    google_cse_id="9107d3c88005e4d21",
+    google_api_key="",
+    google_cse_id="",
     k=5  # 返回前5条结果
 )
 
