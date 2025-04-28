@@ -11,3 +11,5 @@ MODEL_API_KEY =""
 MODEL_BASE_URL=""
 MCP_TOOL_PATH =""
 ```
+
+第三步：启动cli.py文件即可
