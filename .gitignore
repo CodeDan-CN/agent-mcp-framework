@@ -87,3 +87,4 @@ cover/
 *.sqlite
 *.db
 .env
+test.py
