@@ -9,7 +9,9 @@ GOOGLE_API_KEY=""
 GOOGLE_CSE_ID=""
 MODEL_API_KEY =""
 MODEL_BASE_URL=""
-MCP_TOOL_PATH =""
+MCP_TOOL_PATH ="tool.py path url "
+MODEL_NAME ="gpt-4o-mini"
+MODEL_TYPE = "openai"
 ```
 
 第三步：启动cli.py文件即可
