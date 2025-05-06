@@ -41,7 +41,7 @@ class UserQuery(BaseModel):
     tool_chain: List[str]  # 工具链名称列表
     tool_result: List[ToolResultItem]  # 工具执行结果列表
 
-class GPT4oMiniAdapter:
+class ModelAdapter:
     def __init__(self, model_name: str, model_type: str, api_key: str, base_url: str):
         self.generate_prompt = generate_prompt
         self.client = init_chat_model(model_name, model_provider=model_type, temperature=0, api_key=api_key,
