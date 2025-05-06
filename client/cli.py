@@ -6,19 +6,23 @@ from contextlib import AsyncExitStack
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from dotenv import load_dotenv
-from OpeanAI4oMini import GPT4oMiniAdapter, ToolResultItem, UserQuery
+from agent_collections import GPT4oMiniAdapter, ToolResultItem, UserQuery
 
 load_dotenv()  # load environment variables from .env
 api_key = os.environ["MODEL_API_KEY"]
 base_url = os.environ["MODEL_BASE_URL"]
 tool_path = os.environ["MCP_TOOL_PATH"]
+model_name = os.environ["MODEL_NAME"]
+model_type = os.environ["MODEL_TYPE"]
+
 
 class MCPClient:
     def __init__(self):
         # Initialize session and client objects
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
-        self.model_adapter = GPT4oMiniAdapter(api_key=api_key, base_url=base_url)
+        self.model_adapter = GPT4oMiniAdapter(model_name=model_name, model_type=model_type, api_key=api_key,
+                                              base_url=base_url)
 
     # methods will go here
 
@@ -51,7 +55,6 @@ class MCPClient:
         tools = response.tools
         print("\nConnected to server with tools:", [tool.name for tool in tools])
 
-
     async def process_query(self, query: str) -> str:
         """Process a query using Claude and available tools"""
         messages = [
@@ -70,8 +73,6 @@ class MCPClient:
 
         # Initial Claude API call
         response = self.model_adapter.create(
-            model="gpt-4o-mini",  # 使用新模型，相当于适配器内部封装好的逻辑
-            max_tokens=1000,
             messages=messages,
             tools=available_tools
         )
@@ -86,18 +87,16 @@ class MCPClient:
                 return context
             elif type == "tool":
                 # 说明其判断只需要执行一次工具就可以获取到结果
-                tool_name,tool_params = response.result.name, response.result.input
+                tool_name, tool_params = response.result.name, response.result.input
                 # Execute tool call
                 result = await self.session.call_tool(tool_name, tool_params)
-                print("工具结果：",result.content[0].text)
+                print("工具结果：", result.content[0].text)
                 # 需要一个用户问题、工具调用历史进行回答的Agent
                 tool_chain = [response.result.name]
-                tool_result = ToolResultItem(name=response.result.name,result=result.content[0].text)
-                generate_info = UserQuery(user_input=query,tool_chain=tool_chain,tool_result=[tool_result])
+                tool_result = ToolResultItem(name=response.result.name, result=result.content[0].text)
+                generate_info = UserQuery(user_input=query, tool_chain=tool_chain, tool_result=[tool_result])
                 response = self.model_adapter.generate_context(
-                    model="gpt-4o-mini",  # 使用新模型，相当于适配器内部封装好的逻辑
-                    max_tokens=1000,
-                    generate_info = generate_info
+                    generate_info=generate_info
                 )
 
             elif type == "chain":
@@ -111,7 +110,8 @@ class MCPClient:
                     current_tool_name = tool.name
                     tool_chain.append(current_tool_name)
                     # 根据名字获取工具的详细信息
-                    current_node_info = next((tool for tool in available_tools if tool["name"] == current_tool_name), None)
+                    current_node_info = next((tool for tool in available_tools if tool["name"] == current_tool_name),
+                                             None)
                     response = self.model_adapter.generate_param_by_current_node(
                         model="gpt-4o-mini",  # 使用新模型，相当于适配器内部封装好的逻辑
                         max_tokens=1000,
@@ -134,14 +134,11 @@ class MCPClient:
                 # 将工具调用历史等交给大模型，让大模型生成总结
                 generate_info = UserQuery(user_input=query, tool_chain=tool_chain, tool_result=tool_result)
                 response = self.model_adapter.generate_context(
-                    model="gpt-4o-mini",  # 使用新模型，相当于适配器内部封装好的逻辑
-                    max_tokens=1000,
                     generate_info=generate_info
                 )
             else:
                 print("类型解析失败")
                 return ""
-
 
     async def chat_loop(self):
         """Run an interactive chat loop"""
@@ -165,8 +162,8 @@ class MCPClient:
         """Clean up resources"""
         await self.exit_stack.aclose()
 
-async def main():
 
+async def main():
     client = MCPClient()
     try:
         await client.connect_to_server(tool_path)
@@ -175,6 +172,7 @@ async def main():
         await client.chat_loop()
     finally:
         await client.cleanup()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
