@@ -6,7 +6,7 @@ from contextlib import AsyncExitStack
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from dotenv import load_dotenv
-from agent_collections import GPT4oMiniAdapter, ToolResultItem, UserQuery
+from agent_collections import ToolResultItem, UserQuery, ModelAdapter
 
 load_dotenv()  # load environment variables from .env
 api_key = os.environ["MODEL_API_KEY"]
@@ -21,7 +21,7 @@ class MCPClient:
         # Initialize session and client objects
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
-        self.model_adapter = GPT4oMiniAdapter(model_name=model_name, model_type=model_type, api_key=api_key,
+        self.model_adapter = ModelAdapter(model_name=model_name, model_type=model_type, api_key=api_key,
                                               base_url=base_url)
 
     # methods will go here
@@ -113,8 +113,6 @@ class MCPClient:
                     current_node_info = next((tool for tool in available_tools if tool["name"] == current_tool_name),
                                              None)
                     response = self.model_adapter.generate_param_by_current_node(
-                        model="gpt-4o-mini",  # 使用新模型，相当于适配器内部封装好的逻辑
-                        max_tokens=1000,
                         current_node_info=current_node_info,
                         chain_history=chain_history,
                         user_input=query,
