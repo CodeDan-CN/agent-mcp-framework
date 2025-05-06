@@ -25,7 +25,8 @@ MODEL_TYPE = "openai"
 （1）调研开源项目intel opea的微服务组成架构，改写成本项目的微服务架构，并结合langgraph进行统一微服务节点工作流编排
 （2）fastapi微服务架构搭建
 （3）langgraph工作流编排搭建
-（4）提示词使用规范化（langchain v3）
+（4）提示词使用规范化（langchain v3）（☑️）
+（5）新增聊天历史功能 (☑️)
 
 ### 2025年6月份迭代计划
 待定
