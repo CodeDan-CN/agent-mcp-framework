@@ -7,6 +7,8 @@ pip install -r requirements.txt
 ```text
 GOOGLE_API_KEY=""
 GOOGLE_CSE_ID=""
+BING_API_KEY=""
+BING_SEARCH_URL="https://api.bing.microsoft.com/v7.0/search"
 MODEL_API_KEY =""
 MODEL_BASE_URL=""
 MCP_TOOL_PATH ="tool.py path url "
