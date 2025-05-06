@@ -35,13 +35,12 @@ async def google_search_info(query: str) -> str:
     return str(results[0].get("snippet"))
 
 # 请替换为你自己的 Bing 订阅密钥
-bing_subscription_key = "d41d328a36aa498abe25a7ee9864126c"
-# 默认的 Bing 搜索 API endpoint
-bing_search_url = "https://api.bing.microsoft.com/v7.0/search"
+bing_api_key = os.environ["BING_API_KEY"]
+bing_search_url = os.environ["BING_SEARCH_URL"]
 
 # 初始化 BingSearchAPIWrapper
 bing_search = BingSearchAPIWrapper(
-    bing_subscription_key=bing_subscription_key,
+    bing_subscription_key=bing_api_key,
     bing_search_url=bing_search_url,
     k=5  # 返回前5条结果
 )
