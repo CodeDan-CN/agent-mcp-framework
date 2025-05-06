@@ -3,6 +3,8 @@ import json
 import os
 from typing import Optional
 from contextlib import AsyncExitStack
+
+from langchain_core.messages import HumanMessage, AIMessage
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from dotenv import load_dotenv
@@ -15,6 +17,8 @@ tool_path = os.environ["MCP_TOOL_PATH"]
 model_name = os.environ["MODEL_NAME"]
 model_type = os.environ["MODEL_TYPE"]
 
+message_history = []
+
 
 class MCPClient:
     def __init__(self):
@@ -22,7 +26,7 @@ class MCPClient:
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
         self.model_adapter = ModelAdapter(model_name=model_name, model_type=model_type, api_key=api_key,
-                                              base_url=base_url)
+                                          base_url=base_url)
 
     # methods will go here
 
@@ -72,8 +76,10 @@ class MCPClient:
         } for tool in response.tools]
 
         # Initial Claude API call
+        message_history.append(HumanMessage(content=query))
         response = self.model_adapter.create(
             messages=messages,
+            history=message_history,
             tools=available_tools
         )
         print(response)
@@ -84,6 +90,7 @@ class MCPClient:
             type = response.type
             if type == "text":
                 context = response.result.text
+                message_history.append(AIMessage(content=context))
                 return context
             elif type == "tool":
                 # 说明其判断只需要执行一次工具就可以获取到结果
@@ -96,7 +103,8 @@ class MCPClient:
                 tool_result = ToolResultItem(name=response.result.name, result=result.content[0].text)
                 generate_info = UserQuery(user_input=query, tool_chain=tool_chain, tool_result=[tool_result])
                 response = self.model_adapter.generate_context(
-                    generate_info=generate_info
+                    generate_info=generate_info,
+                    history = message_history
                 )
 
             elif type == "chain":
@@ -116,6 +124,7 @@ class MCPClient:
                         current_node_info=current_node_info,
                         chain_history=chain_history,
                         user_input=query,
+                        history= message_history
                     )
                     current_tool_input = response
                     # Execute tool call
@@ -132,7 +141,8 @@ class MCPClient:
                 # 将工具调用历史等交给大模型，让大模型生成总结
                 generate_info = UserQuery(user_input=query, tool_chain=tool_chain, tool_result=tool_result)
                 response = self.model_adapter.generate_context(
-                    generate_info=generate_info
+                    generate_info=generate_info,
+                    history= message_history
                 )
             else:
                 print("类型解析失败")

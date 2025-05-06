@@ -3,7 +3,7 @@ import re
 from typing import List, Union
 
 from langchain.chat_models import init_chat_model
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel
 from template import prompt, generate_prompt, generate_param_prompt
 
@@ -58,7 +58,7 @@ class ModelAdapter:
         self.system_prompt = prompt
         self.generate_param_prompt = generate_param_prompt
 
-    def create(self, messages: list, tools: list):
+    def create(self, messages: list, history: list, tools: list):
         """
         将 messages 与 tools 信息封装后调用模型，并返回一个 FakeResponse 对象。
         """
@@ -70,8 +70,9 @@ class ModelAdapter:
         # 调用模型的聊天接口，使用流式输出
         messages = ChatPromptTemplate([
             ("system", self.system_prompt),
+            MessagesPlaceholder("history"),
             ("human", combined_input)
-        ]).invoke({"tools_info": json.dumps(tools), "user_message": user_message})
+        ]).invoke({"tools_info": json.dumps(tools), "user_message": user_message, "history": history})
         response_text = ""
         for chunk in self.client.stream(input=messages):
             response_text += chunk.content  # 累加每个块的内容
@@ -98,12 +99,13 @@ class ModelAdapter:
             print("转化出错")
         return result
 
-    def generate_context(self, generate_info: UserQuery):
+    def generate_context(self, generate_info: UserQuery, history: List):
         # 调用模型的聊天接口，使用流式输出
         messages = ChatPromptTemplate([
             ("system", self.generate_prompt),
+            MessagesPlaceholder("history"),
             ("human", "{user_input}")
-        ]).invoke({"user_input": json.dumps(generate_info.model_dump())})
+        ]).invoke({"user_input": json.dumps(generate_info.model_dump()), "history": history})
         response_text = ""
         for chunk in self.client.stream(input=messages):
             response_text += chunk.content  # 累加每个块的内容
@@ -115,7 +117,8 @@ class ModelAdapter:
     def generate_param_by_current_node(self,
                                        chain_history: List[dict],
                                        current_node_info: dict,
-                                       user_input: str):
+                                       user_input: str,
+                                       history: List):
         # 组建输入
         input_template = {
             "user_input": user_input,
@@ -124,8 +127,9 @@ class ModelAdapter:
         }
         messages = ChatPromptTemplate([
             ("system", self.generate_param_prompt),
+            MessagesPlaceholder("history"),
             ("human", "{user_input}")
-        ]).invoke({"user_input": json.dumps(input_template)})
+        ]).invoke({"user_input": json.dumps(input_template), "history": history})
         response_text = ""
         for chunk in self.client.stream(input=messages):
             response_text += chunk.content  # 累加每个块的内容
