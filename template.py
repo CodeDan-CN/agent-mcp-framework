@@ -65,7 +65,7 @@ prompt = """
                 // 如有更多调用步骤，依次增加
             ]
         注意事项：
-        1、如果返回样式是json，那么回答内容不允许在json结构外面有任何其他任何内容
+        1、如果返回样式是json，那么回答内容不允许在json结构外面有任何其他任何分析、解释内容, 并且不要在json结构内容使用//注释
 """
 
 generate_prompt = """
@@ -149,15 +149,15 @@ generate_param_prompt = """
           "current_node_info": {{
               "name": "当前工具名称",
               "description": "该工具的功能说明",
-              "input_schema": {
+              "input_schema": {{
                     // 当前工具的输入参数结构
               }}
           }}
         }}
-    任务要求总结：
+    要求总结：
     1.严格根据 current_node_info.input_schema 提取参数
     2.所需信息可从 user_input 和 chain_history 、current_node_info中获得
-    3.最终输出为一个仅包含参数键值对的 JSON 对象
+    3.最终输出为一个仅包含参数键值对的 JSON 对象，不要包含其他任何分析解释内容， 并且不要在json结构内容使用//注释
     4.不需要包含工具名称、解释、或者任何非参数相关的内容
 
 
