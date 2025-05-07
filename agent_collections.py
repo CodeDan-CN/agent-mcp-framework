@@ -13,6 +13,8 @@ def extract_json_from_response(text):
     text = re.sub(r'<think>[\s\S]*?</think>', '', text)
     # 优先提取 ```json ... ``` 中的内容
     match = re.search(r'```json\s*([\s\S]*?)\s*```', text)
+    if match is None:
+        match = re.search(r'(\[.*\])', text, re.DOTALL)
     json_str = match.group(1) if match else text
     try:
         return json.loads(json_str)

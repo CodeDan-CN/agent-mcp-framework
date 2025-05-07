@@ -1,5 +1,4 @@
 import asyncio
-import json
 import os
 from typing import Optional
 from contextlib import AsyncExitStack
@@ -83,9 +82,8 @@ class MCPClient:
             tools=available_tools
         )
         print(response)
-        # 根据返回类型进行输出 TODO：暂不考虑历史记录
+        # 根据返回类型进行输出
         # 先写第一种，即文本类型，说明不需要调用工具（可能是结束也可能是调用工具的条件不足），直接获得返回
-
         while True:
             type = response.type
             if type == "text":
