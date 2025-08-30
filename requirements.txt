@@ -6,6 +6,7 @@ anthropic==0.49.0
 anyio==4.9.0
 async-timeout==4.0.3
 attrs==25.3.0
+beautifulsoup4==4.13.5
 cachetools==5.5.2
 certifi==2025.1.31
 charset-normalizer==3.4.1
@@ -45,6 +46,7 @@ numpy==2.2.5
 openai==1.75.0
 orjson==3.10.16
 packaging==24.2
+playwright==1.55.0
 propcache==0.3.1
 proto-plus==1.26.1
 protobuf==6.30.2
