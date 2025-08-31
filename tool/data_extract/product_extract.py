@@ -1,3 +1,4 @@
+import csv
 import json
 import logging
 import os
@@ -48,16 +49,10 @@ class ProductExtract:
         for res in all_results:
             results.extend(res)
 
-        homepage_url = data.get("url", "").strip()
-        result_data = {
-            "source_url": homepage_url,
-            "extracted_products": results
-        }
-
-        # 保存结果到文件
-        output_path = "../../file/product_extract_results.json"
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(result_data, f, ensure_ascii=False, indent=2)
+        # 保存结果到csv文件
+        output_path = "../../file/product_extract_results.csv"
+        cls.write_results_to_csv(results, output_path)
+        logger.info(f"Extraction completed. Results saved to {output_path}")
 
     @classmethod
     async def extract_by_url(cls, llm: BaseLanguageModel, url: str, sem: asyncio.Semaphore) -> list[dict]:
@@ -72,12 +67,21 @@ class ProductExtract:
                 ]
                 response = await llm.ainvoke(messages)
                 json_data = cls.extract_json_from_output(response.content)
+                logger.info(f"Extracted {len(json_data)} products from {url}")
                 if not isinstance(json_data, list):
                     raise ValueError(f"Expected a list but got {type(json_data)}")
+                result = [
+                    {
+                        "product_url": url,
+                        "product_name": item.get("name", ""),
+                        "product_description": item.get("description", "")
+                    }
+                    for item in json_data if isinstance(item, dict)
+                ]
         except Exception as e:
             logger.warning(f"Error processing URL {url}: {e}")
-            json_data = []
-        return json_data
+            result = []
+        return result
 
     @staticmethod
     def collect_urls(node: list, score_norm_threshold: float = 0.7) -> list[str]:
@@ -105,6 +109,19 @@ class ProductExtract:
             return json_parse
         except Exception:
             raise ValueError(f"Failed to decode JSON:{json_str[:1000]}")
+
+    @staticmethod
+    def write_results_to_csv(results: list[dict], output_path: str) -> None:
+        """将结果写入CSV文件"""
+        if not results:
+            logger.info("No products extracted.")
+            return
+        fieldnames = results[0].keys()
+        with open(output_path, "w", encoding="utf-8", newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in results:
+                writer.writerow(row)
 
 
 if __name__ == "__main__":
