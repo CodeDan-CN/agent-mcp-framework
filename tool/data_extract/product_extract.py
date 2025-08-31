@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from typing import Any
+import asyncio
 
 from dotenv import load_dotenv
 from json_repair import json_repair
@@ -59,7 +60,7 @@ class ProductExtract:
             json.dump(result_data, f, ensure_ascii=False, indent=2)
 
     @classmethod
-    async def extract_by_url(cls, llm: BaseLanguageModel, url: str, sem) -> list[dict]:
+    async def extract_by_url(cls, llm: BaseLanguageModel, url: str, sem: asyncio.Semaphore) -> list[dict]:
         """按照url进行网页产品信息抽取"""
         try:
             async with sem:
@@ -107,6 +108,4 @@ class ProductExtract:
 
 
 if __name__ == "__main__":
-    import asyncio
-
     asyncio.run(ProductExtract.extract(llm, score_norm_threshold=0.7, max_concurrent=8))
