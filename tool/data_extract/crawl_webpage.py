@@ -1,7 +1,9 @@
 import asyncio
+import logging
 
-from bs4 import BeautifulSoup, Comment
 from playwright.async_api import async_playwright, Page
+
+logger = logging.getLogger(__name__)
 
 
 class CrawlError(Exception):
@@ -24,7 +26,6 @@ class WebCrawler:
             await context.route("**/*", cls.block_resource)  # 应用资源过滤
             page = await context.new_page()
             content = await cls.navigate_page(page, url)
-            content = cls.dom_clean_tags(content)
             await context.close()
             await browser.close()
             return content
@@ -47,8 +48,11 @@ class WebCrawler:
                 content = await page.content()
                 return content
             else:
-                raise CrawlError(f"StatusCode: {response.status}, StatusText: {response.status_text}")
+                err_msg = f"Navigate failed: StatusCode {response.status}, StatusText: {response.status_text}"
+                logger.warning(err_msg)
+                raise CrawlError(err_msg)
         except Exception as e:
+            logger.error(f"Navigate Exception: {e}")
             raise CrawlError(f"Navigate Exception: {e}")
 
     @classmethod
@@ -65,33 +69,3 @@ class WebCrawler:
                 break
             last_height = new_height
             scroll_count += 1
-
-    @staticmethod
-    def dom_clean_tags(dom: str) -> str:
-        """清洗dom里面不需要的标签和属性"""
-        try:
-            soup = BeautifulSoup(dom, features='html.parser')
-            body = soup.find("body")
-
-            for tag in body.find_all(['link', 'style', 'script', 'head', 'header', 'foot', 'footer', 'img', 'button']):
-                tag.extract()
-
-            for tag in body.find_all('div', class_=lambda x: x and ('header' in x or 'footer' in x)):
-                tag.extract()
-
-            for comment in body.find_all(string=lambda text: isinstance(text, Comment)):
-                comment.extract()
-
-            # 找到所有 <select> 元素
-            for select in soup.find_all('select'):
-                select.decompose()  # 移除 <select> 标签及其内容
-
-            attrs = body.find_all(attrs={'class': True}) + body.find_all(attrs={'style': True}) + body.find_all(
-                attrs={'href': True})
-            for attr in attrs:
-                del attr['class']
-                del attr['style']
-                del attr['href']
-            return body.prettify()
-        except Exception as e:
-            raise CrawlError(f"DOM Clean Exception: {e}")
