@@ -14,6 +14,15 @@ if (!fs.existsSync(logsDir)) {
 }
 const logFilePath = path.join(logsDir, 'navCrawlerAdd.log');
 
+function isAllowedDomain(url) {
+    try {
+        const hostname = new URL(url).hostname;
+        return hostname.endsWith('tongrentang.com');
+    } catch {
+        return false;
+    }
+}
+
 function logToFile(...args) {
   const message = args.join(' ');
   console.log(message);
@@ -41,7 +50,7 @@ export async function crawlNavTree({
             if (!node) return [];
             let urls = [];
             if (!node.children || node.children.length === 0) {
-                if (node.score_norm < 0.7 && node.url) urls.push(node.url);
+                if (node.score_norm < 0.6 && node.url) urls.push(node.url);
             } else {
                 node.children.forEach(child => {
                     urls = urls.concat(initLowScoreUrls(child));
@@ -73,9 +82,16 @@ export async function crawlNavTree({
         for (const node of tree) {
             if (!node.children || node.children.length === 0) {
                 // 只保留 score_norm > 0.7 的叶子节点
-                if (node.score_norm && node.score_norm > 0.7 && node.url && node.url.trim() !== '' && node.url !== '#') {
-                    leaves.push(node);
+                if (
+                    node.score_norm && node.score_norm > 0.6
+                  &&
+                  node.url &&
+                  node.url.trim() !== '' &&
+                  node.url !== '#'
+                ) {
+                  leaves.push(node);
                 }
+
             } else {
                 leaves = leaves.concat(getLeafNodes(node.children));
             }
@@ -110,6 +126,7 @@ export async function crawlNavTree({
             if (!href || href.startsWith('javascript')) continue;
 
             const fullUrl = href.startsWith('http') ? href : new URL(href, baseUrl).href;
+            if (!isAllowedDomain(fullUrl)) continue; // ✅ 域名限制
             const title = a.textContent.trim() || '(empty title)';
 
             const node = await urlMutex.runExclusive(async () => {
@@ -151,9 +168,15 @@ export async function crawlNavTree({
             },
         });
 
-        await crawler.addRequests([{ url: leafNode.url }].filter(r =>
-            typeof r.url === 'string' && r.url.trim() !== '' && r.url.startsWith('http')
-        ));
+        await crawler.addRequests(
+            [{ url: leafNode.url }]
+                .filter(r =>
+                    typeof r.url === 'string' &&
+                    r.url.trim() !== '' &&
+                    r.url.startsWith('http') &&
+                    isAllowedDomain(r.url) // ✅ 域名限制
+                )
+        );
         await crawler.run();
         // ✅ 收尾
         await crawler.teardown();

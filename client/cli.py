@@ -1,5 +1,6 @@
 import asyncio
 import os
+import shutil
 from typing import Optional, List
 from contextlib import AsyncExitStack
 
@@ -129,7 +130,7 @@ class MCPClient:
                                              None)
                     response = self.model_adapter.generate_param_by_current_node(
                         current_node_info=current_node_info,
-                        chain_history=chain_history,
+                        chain_history= [chain_history[-1]] if chain_history else [],
                         user_input=query,
                         history= message_history
                     )
@@ -175,6 +176,12 @@ class MCPClient:
                 response = await self.process_query(query)
                 print("\n" + response)
                 # 删除一下当前目录下的storage目录
+                dir_path = os.path.join(os.getcwd(), "storage")
+                if os.path.exists(dir_path):
+                    shutil.rmtree(dir_path)
+                    print(f"已删除: {dir_path}")
+                else:
+                    print("storage 目录不存在")
 
             except Exception as e:
                 print(f"\nError: {str(e)}")
@@ -187,8 +194,7 @@ class MCPClient:
 async def main():
     client = MCPClient()
     try:
-        await client.connect_to_server(["/Users/codedan/local/project/crawlee/agent-mcp-framework/tool/init_tree/index.js","/Users/codedan/local/project/crawlee/agent-mcp-framework/tool/node_filter/tree_node_filter.py","/Users/codedan/local/project/crawlee/agent-mcp-framework/tool/add_tree/index.js"])
-        # await client.connect_to_server("D:\\local\\pycharm\\mcp_demo\\server\\echo_server.py")
+        await client.connect_to_server(["../tool/init_tree/index.js","../tool/node_filter/tree_node_filter.py","../tool/add_tree/index.js"])
 
         await client.chat_loop()
     finally:
