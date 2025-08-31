@@ -56,3 +56,6 @@ main().catch((error) => {
   console.error("Fatal error in main():", error);
   process.exit(1);
 });
+
+// await crawlNavTree("https://www.tongrentang.com/"); // 注意这里传入 level
+

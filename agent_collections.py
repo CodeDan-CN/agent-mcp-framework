@@ -135,5 +135,4 @@ class ModelAdapter:
         response_text = ""
         for chunk in self.client.stream(input=messages):
             response_text += chunk.content  # 累加每个块的内容
-        print(f"当前节点{current_node_info}的参数为:", response_text)
         return extract_json_from_response(response_text)
