@@ -6,7 +6,9 @@ from urllib.parse import urljoin
 from mcp.server import FastMCP
 from openai import OpenAI
 
-client = OpenAI(api_key="sk-", base_url="https://api.aigc369.com/v1")
+client = OpenAI(api_key="sk-",
+                base_url="https://api.aigc369.com/v1")
+
 PRODUCT_KEYWORDS = "产品 服务 商城 商品 购买 销售 汽车 各类不同行业商品 catalog shop"
 INTERMEDIATE_KEYWORDS = "类别 分类 系列 品牌 页码 下一页 1 2 3 4 5 6 7 8 9 上一页 下一页 page category list 目录"
 

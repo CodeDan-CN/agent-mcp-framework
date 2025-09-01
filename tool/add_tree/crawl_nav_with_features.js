@@ -1,9 +1,10 @@
 import fs from 'fs';
-import { PlaywrightCrawler } from 'crawlee';
+import {Configuration, PlaywrightCrawler, purgeDefaultStorages} from 'crawlee';
 import { JSDOM } from 'jsdom';
 import { Mutex } from 'async-mutex';
 import path from "path";
 import {fileURLToPath} from "url";
+import * as JSON5 from "zod/v4";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const urlMutex = new Mutex();
 
@@ -14,10 +15,13 @@ if (!fs.existsSync(logsDir)) {
 }
 const logFilePath = path.join(logsDir, 'navCrawlerAdd.log');
 
+let filter_url = '';
+
 function isAllowedDomain(url) {
     try {
         const hostname = new URL(url).hostname;
-        return hostname.endsWith('tongrentang.com');
+        const temp_filter_url = new URL(filter_url).hostname;
+        return hostname.endsWith(temp_filter_url);
     } catch {
         return false;
     }
@@ -37,8 +41,30 @@ export async function crawlNavTree({
 } = {}) {
     // === 初始化逻辑 ===
     outputPath = outputPath + `/add_tree${level}.json`
-    const data = JSON.parse(fs.readFileSync(inputPath, 'utf-8'));
+    if (!inputPath) {
+        throw new Error('inputPath 不能为空');
+    }
+
+    if (!fs.existsSync(inputPath)) {
+        throw new Error(`输入文件不存在: ${inputPath}`);
+    }
+
+    const fileContent = fs.readFileSync(inputPath, 'utf-8').trim();
+    if (!fileContent) {
+        throw new Error(`输入文件为空: ${inputPath}`);
+    }
+
+    let data;
+    try {
+        // 支持 JSON5（允许注释、尾逗号等）
+        data = JSON.parse(fileContent);
+    } catch (err) {
+        console.error('JSON/JSON5 解析失败，请检查文件格式');
+        throw err;
+    }
+    filter_url = data.url
     const navTree = data.nav_tree || [];
+
     const urlMap = new Map();
 
     // 1️⃣ 初始化 uniqueList
@@ -148,7 +174,8 @@ export async function crawlNavTree({
 
     async function crawlLeafNode(leafNode) {
         if (!leafNode.url) return;
-
+        const storageDir = path.join(__dirname, `./storage_${Date.now()}`);
+        process.env.CRAWLEE_STORAGE_DIR = storageDir;
         const crawler = new PlaywrightCrawler({
             maxConcurrency: 1,
             async requestHandler({ page, request }) {
@@ -165,7 +192,7 @@ export async function crawlNavTree({
                 const html = await page.content();
                 const childrenTree = await buildChildTree(html, request.url, leafNode.url);
                 leafNode.children = childrenTree;
-            },
+            }
         });
 
         await crawler.addRequests(
@@ -178,7 +205,6 @@ export async function crawlNavTree({
                 )
         );
         await crawler.run();
-        // ✅ 收尾
         await crawler.teardown();
     }
 
@@ -194,6 +220,7 @@ export async function crawlNavTree({
                 executing.push(e);
                 if (executing.length >= poolLimit) {
                     await Promise.race(executing);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
         }

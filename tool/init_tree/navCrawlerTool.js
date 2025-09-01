@@ -1,4 +1,4 @@
-import { PlaywrightCrawler } from 'crawlee';
+import {PlaywrightCrawler, purgeDefaultStorages} from 'crawlee';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
@@ -148,6 +148,7 @@ export async function crawlNavTree(url) {
   await crawler.teardown();
   const storagePath = path.join(__dirname, 'storage');
   logToFile(`回收爬虫程序产生的脏数据.....`);
+  await purgeDefaultStorages();
   if (fs.existsSync(storagePath)) {
     fs.rmSync(storagePath, { recursive: true, force: true });
   }

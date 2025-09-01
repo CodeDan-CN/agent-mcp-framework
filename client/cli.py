@@ -9,6 +9,7 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from dotenv import load_dotenv
 from agent_collections import ToolResultItem, UserQuery, ModelAdapter
+from tool.data_extract.product_extract import ProductExtract
 
 load_dotenv()  # load environment variables from .env
 api_key = os.environ["MODEL_API_KEY"]
@@ -152,11 +153,15 @@ class MCPClient:
                     )
                     tool_result.append(ToolResultItem(name=current_tool_name, result=result.content[0].text))
                 # 将工具调用历史等交给大模型，让大模型生成总结
-                generate_info = UserQuery(user_input=query, tool_chain=tool_chain, tool_result=tool_result)
-                response = self.model_adapter.generate_context(
-                    generate_info=generate_info,
-                    history= message_history
-                )
+                chain_history= chain_history[-1] if chain_history else []
+                input_temp_path = chain_history.get("result")
+                await ProductExtract.extract(input_temp_path)
+                return f"爬取结束，最终输出文件名称为:result.csv"
+                # generate_info = UserQuery(user_input=query, tool_chain=tool_chain, tool_result=tool_result)
+                # response = self.model_adapter.generate_context(
+                #     generate_info=generate_info,
+                #     history= message_history
+                # )
             else:
                 print("类型解析失败")
                 return ""

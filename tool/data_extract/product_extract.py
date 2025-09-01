@@ -1,10 +1,10 @@
+import asyncio
 import json
 import logging
 import os
 import re
 from typing import Any
 
-from dotenv import load_dotenv
 from json_repair import json_repair
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models import BaseLanguageModel
@@ -13,7 +13,6 @@ from template import PRODUCT_EXTRACT_PROMPT
 from tool.data_extract.crawl_webpage import WebCrawler
 from tool.data_extract.dom_data_clean import DomDataClean
 
-load_dotenv()  # load environment variables from .env
 api_key = os.environ["MODEL_API_KEY"]
 base_url = os.environ["MODEL_BASE_URL"]
 model_name = os.environ["MODEL_NAME"]
@@ -28,10 +27,9 @@ logger = logging.getLogger(__name__)
 class ProductExtract:
 
     @classmethod
-    async def extract(cls, llm: BaseLanguageModel, score_norm_threshold: float = 0.7, max_concurrent: int = 8):
+    async def extract(cls, input_path: str, llm: BaseLanguageModel = llm, score_norm_threshold: float = 0.7, max_concurrent: int = 8):
         """产品信息抽取"""
         # 从json文件中读取数据
-        input_path = "../../file/data_scored3.json"
         with open(input_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
@@ -54,7 +52,7 @@ class ProductExtract:
         }
 
         # 保存结果到文件
-        output_path = "../../file/product_extract_results.json"
+        output_path = "/Users/codedan/local/project/crawlee/agent-mcp-framework/file/product_extract_results.json"
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(result_data, f, ensure_ascii=False, indent=2)
 
@@ -106,7 +104,7 @@ class ProductExtract:
             raise ValueError(f"Failed to decode JSON:{json_str[:1000]}")
 
 
-if __name__ == "__main__":
-    import asyncio
-
-    asyncio.run(ProductExtract.extract(llm, score_norm_threshold=0.7, max_concurrent=8))
+# if __name__ == "__main__":
+#     import asyncio
+#
+#     asyncio.run(ProductExtract.extract("/Users/codedan/local/project/crawlee/agent-mcp-framework/file/data_scored3.json",llm, score_norm_threshold=0.7, max_concurrent=8))

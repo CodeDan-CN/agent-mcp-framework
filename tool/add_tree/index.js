@@ -59,4 +59,4 @@ main().catch((error) => {
   process.exit(1);
 });
 
-// await crawlNavTree({inputPath:"/Users/codedan/local/project/crawlee/agent-mcp-framework/file/data_scored2.json", level:3}); // 注意这里传入 level
+// await crawlNavTree({inputPath:"/Users/codedan/local/project/crawlee/agent-mcp-framework/file/data_scored1.json", level:2}); // 注意这里传入 level
