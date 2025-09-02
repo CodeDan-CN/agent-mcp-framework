@@ -156,7 +156,7 @@ class MCPClient:
                 chain_history= chain_history[-1] if chain_history else []
                 input_temp_path = chain_history.get("result")
                 await ProductExtract.extract(input_temp_path)
-                return f"爬取结束，最终输出文件名称为:result.csv"
+                return f"爬取结束，最终输出文件名称为:product_extract_results.csv"
                 # generate_info = UserQuery(user_input=query, tool_chain=tool_chain, tool_result=tool_result)
                 # response = self.model_adapter.generate_context(
                 #     generate_info=generate_info,

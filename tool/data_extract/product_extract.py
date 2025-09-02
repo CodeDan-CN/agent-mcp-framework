@@ -1,4 +1,3 @@
-import asyncio
 import csv
 import json
 import logging
@@ -19,6 +18,7 @@ api_key = os.environ["MODEL_API_KEY"]
 base_url = os.environ["MODEL_BASE_URL"]
 model_name = os.environ["MODEL_NAME"]
 model_type = os.environ["MODEL_TYPE"]
+output_dir = os.environ["OUTPUT_PATH"]
 
 llm = init_chat_model(model_name, model_provider=model_type, temperature=0, api_key=api_key,
                       base_url=base_url)
@@ -47,9 +47,10 @@ class ProductExtract:
         for res in all_results:
             results.extend(res)
 
+        unique_results = cls.deduplicate_results(results)
         # 保存结果到csv文件
-        output_path = "../../file/product_extract_results.csv"
-        cls.write_results_to_csv(results, output_path)
+        output_path = f"{output_dir}/product_extract_results.csv"
+        cls.write_results_to_csv(unique_results, output_path)
         logger.info(f"Extraction completed. Results saved to {output_path}")
 
     @classmethod
@@ -121,8 +122,35 @@ class ProductExtract:
             for row in results:
                 writer.writerow(row)
 
+    @staticmethod
+    def normalize_name(name: str) -> str:
+        """标准化产品名，去重时使用"""
+        if not name:
+            return ""
+        # 转小写，去空格，去掉特殊符号
+        name = name.lower().strip()
+        name = re.sub(r"[\s\-_·.]+", " ", name)  # 连续符号和多空格替换为单空格
+        return name
 
-# if __name__ == "__main__":
-#     import asyncio
-#
-#     asyncio.run(ProductExtract.extract("/Users/codedan/local/project/crawlee/agent-mcp-framework/file/data_scored3.json",llm, score_norm_threshold=0.7, max_concurrent=8))
+    @classmethod
+    def deduplicate_results(cls, results: list[dict]) -> list[dict]:
+        """以product_name为主，去重，保留description最长的记录"""
+        best_records = {}
+        for item in results:
+            norm_name = cls.normalize_name(item.get("product_name", ""))
+            if not norm_name:
+                continue  # 跳过无效名字
+            # 如果已有同名，比较description长度
+            existing = best_records.get(norm_name)
+            if existing:
+                if len(item.get("product_description", "")) > len(existing.get("product_description", "")):
+                    best_records[norm_name] = item
+            else:
+                best_records[norm_name] = item
+        return list(best_records.values())
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    asyncio.run(ProductExtract.extract("/Users/codedan/local/project/crawlee/agent-mcp-framework/file/data_scored3.json",llm, score_norm_threshold=0.7, max_concurrent=8))

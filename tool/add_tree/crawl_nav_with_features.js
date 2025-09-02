@@ -7,9 +7,12 @@ import {fileURLToPath} from "url";
 import * as JSON5 from "zod/v4";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const urlMutex = new Mutex();
-
 // 确保 logs 目录存在
 const logsDir = path.join(__dirname, '../logs');
+
+let prefix_output_path = process.env.OUTPUT_PATH
+
+
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
@@ -36,11 +39,10 @@ function logToFile(...args) {
 export async function crawlNavTree({
     inputPath = '',
     level,
-    outputPath = '/Users/codedan/local/project/crawlee/agent-mcp-framework/file',
     concurrency = 5
 } = {}) {
     // === 初始化逻辑 ===
-    outputPath = outputPath + `/add_tree${level}.json`
+    const outputPath = prefix_output_path + `/add_tree${level}.json`
     if (!inputPath) {
         throw new Error('inputPath 不能为空');
     }

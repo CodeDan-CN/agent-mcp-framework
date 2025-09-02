@@ -1,13 +1,19 @@
 import asyncio
 import json
+import os
 import time
 from urllib.parse import urljoin
 
 from mcp.server import FastMCP
 from openai import OpenAI
 
-client = OpenAI(api_key="sk-",
-                base_url="https://api.aigc369.com/v1")
+api_key = os.environ["MODEL_API_KEY"]
+base_url = os.environ["MODEL_BASE_URL"]
+model_name = os.environ["MODEL_NAME"]
+output_dir = os.environ["OUTPUT_PATH"]
+
+client = OpenAI(api_key=api_key,
+                base_url=base_url)
 
 PRODUCT_KEYWORDS = "产品 服务 商城 商品 购买 销售 汽车 各类不同行业商品 catalog shop"
 INTERMEDIATE_KEYWORDS = "类别 分类 系列 品牌 页码 下一页 1 2 3 4 5 6 7 8 9 上一页 下一页 page category list 目录"
@@ -74,7 +80,7 @@ def batch_score_relevance(lines):
 
     try:
         resp = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=model_name,
             messages=[
                 {"role": "system", "content": "你是一个只返回 CSV 的评分助手，格式：编号,产品分,中间页分，不要输出其它内容。"},
                 {"role": "user", "content": prompt}
@@ -163,7 +169,7 @@ async def score_nav_tree_tool(tree_json_path: str, level:int):
         row["node"]["score_norm"] = score_norm
         row["node"]["crawl_needed"] = score_norm >= 0.7
 
-    out_path = f"/Users/codedan/local/project/crawlee/agent-mcp-framework/file/data_scored{level}.json"
+    out_path = f"{output_dir}/data_scored{level}.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 

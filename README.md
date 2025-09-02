@@ -1,49 +1,37 @@
 ### 如何启动项目
-
-第一步：依赖安装
+##### 下载相关依赖（已有conda环境和npm环境）
+1.首先你要跳转到当前项目根目录中,下载python依赖
+```bash
 pip install -r requirements.txt
-
-第二步：在项目根目录下创建.env文件，补充下述环境变量
-```text
-GOOGLE_API_KEY=""
-GOOGLE_CSE_ID=""
-BING_API_KEY=""
-BING_SEARCH_URL="https://api.bing.microsoft.com/v7.0/search"
-MODEL_API_KEY =""
-MODEL_BASE_URL=""
-MCP_TOOL_PATH ="tool.py path url "
-MODEL_NAME ="gpt-4o-mini"
-MODEL_TYPE = "openai"
 ```
 
-第三步：启动cli.py文件即可
+2.然后你要跳转到tool目录中的add_tree,init_tree下,进行node依赖的下载
+```bash
+npm install
+```
 
-问题实例1（预计调用google_search或者bing_search工具，这两个工具需要配置好代理）： 小米su7怎么样？
+##### 进行环境变量设置
+在启动cli.py之前，设置下述环境变量
+MODEL_NAME=gpt-4o-mini;
+MODEL_TYPE=openai;
+MODEL_API_KEY=your_api_key;
+MODEL_BASE_URL=https://api.aigc369.com/v1;
+OUTPUT_PATH=/Users/codedan/local/project/crawlee/agent-mcp-framework/file 
 
-问题实例2（预计不调用工具）： 你好啊
+其中OUTPUT_PATH替换成你机器存在的目录，爬取中间过程文件和最终csv均会在此
 
-问题实例3（预计调用组合工具链）：帮我预定2025年5月6日武汉到广州的机票，并且帮我看看那趟航班的信息和两地的天气
+##### 启动cli.py，并且输入你的要求
+启动会看到命令行中出现
+Nav Tree MCP Server running on stdio
+✅ Connected to 1 tool services,name:../tool/init_tree/index.js
+✅ Connected to 2 tool services,name:../tool/node_filter/tree_node_filter.py
+Nav Tree MCP Server running on stdio
+✅ Connected to 3 tool services,name:../tool/add_tree/index.js
 
-问题实例4（对话记忆功能）：
-组合问题：
-    问题1: 今天是2025年5月6日，我在武汉，帮我看看现在武汉天气怎么样
-    问题2: 帮我预定一趟去广东的飞机
-    问题3: 给我展示一下这趟航班的信息
+MCP Client Started!
+Type your queries or 'quit' to exit.
 
+Query:
 
-
-### 2025年4月份迭代计划
-（1）初步搭建mcp客户端 （☑️）
-（2）替换统一调用模型（☑️）
-（3）调研langchain的graph工作流节点（☑️）
-
-### 2025年5月份迭代计划
-（1）调研开源项目intel opea的微服务组成架构，改写成本项目的微服务架构，并结合langgraph进行统一微服务节点工作流编排
-（2）fastapi微服务架构搭建
-（3）langgraph工作流编排搭建
-（4）提示词使用规范化（langchain v3）（☑️）
-（5）新增聊天历史功能 (☑️)
-
-### 2025年6月份迭代计划
-待定
-
+这个时候输入你的指令：帮我爬取https://www.digitalchina.com/和其子链中的产品和服务信息，边爬边剪枝，完成第三层爬取和剪枝之后，结束即可
+这样就可以触发mcp agent思考，安排爬取流程。

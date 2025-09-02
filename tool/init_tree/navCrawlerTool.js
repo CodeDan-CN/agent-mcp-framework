@@ -3,8 +3,13 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 import OpenAI from 'openai';
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+let prefix_output_path = process.env.OUTPUT_PATH
+let api_key = process.env.MODEL_API_KEY
+let base_url = process.env.MODEL_BASE_URL
+let model_name = process.env.MODEL_NAME
+
 
 // 确保 logs 目录存在
 const logsDir = path.join(__dirname, '../../logs');
@@ -21,8 +26,8 @@ function logToFile(...args) {
 }
 
 const client = new OpenAI({
-  apiKey: "sk-", // 建议用环境变量
-  baseURL: 'https://api.aigc369.com/v1',
+  apiKey: api_key, // 建议用环境变量
+  baseURL: base_url,
 });
 
 const NAV_SELECTORS = [
@@ -49,7 +54,7 @@ ${html}
 
   logToFile("调用 LLM 解析导航 HTML...")
   const completion = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: model_name,
     messages: [{ role: 'user', content: prompt }],
     temperature: 0,
   });
@@ -153,7 +158,7 @@ export async function crawlNavTree(url) {
     fs.rmSync(storagePath, { recursive: true, force: true });
   }
   logToFile(`初始树工具调用完毕`);
-  const filePath = await saveJsonToFile(result,"/Users/codedan/local/project/crawlee/agent-mcp-framework/file")
+  const filePath = await saveJsonToFile(result,prefix_output_path)
   return filePath;
 }
 
