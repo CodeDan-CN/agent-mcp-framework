@@ -56,8 +56,7 @@ class NewsListStrategyGenerator:
             agent= Agent(
                 task=analysis_task,  # 必需的 task 参数
                 llm=self.llm,
-                browser= self.browser,
-                attachments_dir=output_path
+                browser= self.browser
             )
             result = await agent.run()
             # 处理爬取到的数据列表页面
