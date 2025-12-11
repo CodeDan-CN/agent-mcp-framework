@@ -56,17 +56,18 @@ class NewsListStrategyGenerator:
             agent= Agent(
                 task=analysis_task,  # 必需的 task 参数
                 llm=self.llm,
-                browser= self.browser
+                browser= self.browser,
+                attachments_dir=output_path
             )
             result = await agent.run()
             # 处理爬取到的数据列表页面
             # ✅ 关键修改：从Agent生成的results.json文件中提取结构化数据
             # structured_data = self._extract_final_result(result)
-
-            structured_data = self.get_extract_json(result)
+            final_attachment_path = getattr(agent, 'file_system_path', None)
+            # structured_data = self.get_extract_json(result)
             # 保存到你指定的输出文件
-            self._save_to_json(structured_data)
-            return structured_data
+            # self._save_to_json(structured_data)
+            return f"{final_attachment_path}\\browseruse_agent_data\\results.json"
         except Exception as e:
             print(f"❌ 策略生成失败: {e}")
             return self._get_fallback_strategy(website_url)
@@ -401,7 +402,8 @@ class NewsListStrategyGenerator:
 
 async def scraping_pre_tasks(url, llm, browser, output_path):
     generator = NewsListStrategyGenerator(url,llm, browser, output_path)
-    strategies = await generator.generate_news_list_strategy(url)
+    output_path = await generator.generate_news_list_strategy(url)
+    return output_path
 
 async def init_strategy(url: str,output_path):
     # Events.startup(application)
