@@ -6,6 +6,7 @@ import re
 from typing import Any
 import asyncio
 
+from dotenv import load_dotenv
 from json_repair import json_repair
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models import BaseLanguageModel
@@ -13,7 +14,7 @@ from langchain_core.language_models import BaseLanguageModel
 from template import PRODUCT_EXTRACT_PROMPT
 from tool.data_extract.crawl_webpage import WebCrawler
 from tool.data_extract.dom_data_clean import DomDataClean
-
+load_dotenv()
 api_key = os.environ["MODEL_API_KEY"]
 base_url = os.environ["MODEL_BASE_URL"]
 model_name = os.environ["MODEL_NAME"]

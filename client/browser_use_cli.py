@@ -202,15 +202,84 @@ class NewsListStrategyGenerator:
         """保存数据到JSON文件"""
         try:
             # 转换为可序列化的格式
+            def prepare_data_for_saving(data):
+                """
+                准备要保存的数据，处理换行符和JSON格式
+                """
+                # 如果输入是None或空
+                if data is None:
+                    return {}
+
+                # 如果是字符串
+                if isinstance(data, str):
+                    # 去除首尾空白
+                    data = data.strip()
+
+                    # 尝试判断是否为JSON字符串
+                    is_json_string = False
+                    if data:
+                        # 检查是否以 { 或 [ 开头
+                        if data.startswith('{') and data.endswith('}'):
+                            is_json_string = True
+                        elif data.startswith('[') and data.endswith(']'):
+                            is_json_string = True
+
+                    if is_json_string:
+                        try:
+                            # 解析JSON
+                            parsed = json.loads(data)
+                            # 清理字符串中的换行符
+                            return clean_json_strings_recursive(parsed)
+                        except json.JSONDecodeError:
+                            # 如果不是有效JSON，当作普通文本处理
+                            return clean_text_string(data)
+                    else:
+                        # 普通文本，清理换行符
+                        return clean_text_string(data)
+
+                # 如果是字典或列表，递归清理
+                elif isinstance(data, (dict, list)):
+                    return clean_json_strings_recursive(data)
+
+                # 其他类型直接返回
+                return data
+
+            def clean_json_strings_recursive(obj):
+                """递归清理JSON对象中字符串值的换行符"""
+                if isinstance(obj, dict):
+                    return {k: clean_json_strings_recursive(v) for k, v in obj.items()}
+                elif isinstance(obj, list):
+                    return [clean_json_strings_recursive(item) for item in obj]
+                elif isinstance(obj, str):
+                    # 清理字符串，但保留必要的结构
+                    # 替换换行符为空格，合并多个空格
+                    cleaned = re.sub(r'[\r\n]+', ' ', obj)  # 换行符变空格
+                    cleaned = re.sub(r'\s+', ' ', cleaned)  # 合并多个空格
+                    return cleaned.strip()
+                else:
+                    return obj
+            def clean_text_string(text):
+                """清理普通文本字符串中的换行符"""
+                if not isinstance(text, str):
+                    return text
+
+                # 方法1：替换换行符为空格（保持可读性）
+                cleaned = re.sub(r'\s+', ' ', text)  # 将所有空白字符（包括换行）替换为单个空格
+                cleaned = cleaned.strip()
+
+                # 方法2：完全删除换行符（如果需要）
+                # cleaned = text.replace('\n', '').replace('\r', '')
+
+                return cleaned
             if hasattr(data, 'dict'):  # 处理Pydantic模型
                 data_to_save = data.dict()
             elif isinstance(data, (dict, list, str, int, float, bool, type(None))):
-                data_to_save = data
+                data_to_save =  json.loads(data)
             else:
-                data_to_save = str(data)
-
+                data_to_save = prepare_data_for_saving(data.replace("\n", ""))
             # 添加元数据
             # 写入文件
+
             with open(self.output_path, 'w', encoding='utf-8') as f:
                 json.dump(data_to_save, f,
                           ensure_ascii=False,  # 支持中文
