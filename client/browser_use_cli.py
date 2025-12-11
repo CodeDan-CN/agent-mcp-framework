@@ -274,7 +274,7 @@ class NewsListStrategyGenerator:
             if hasattr(data, 'dict'):  # 处理Pydantic模型
                 data_to_save = data.dict()
             elif isinstance(data, (dict, list, str, int, float, bool, type(None))):
-                data_to_save =  json.loads(data)
+                data_to_save =  data
             else:
                 data_to_save = prepare_data_for_saving(data.replace("\n", ""))
             # 添加元数据
