@@ -274,9 +274,26 @@ class NewsListStrategyGenerator:
             if hasattr(data, 'dict'):  # 处理Pydantic模型
                 data_to_save = data.dict()
             elif isinstance(data, (dict, list, str, int, float, bool, type(None))):
-                data_to_save =  data
+                data_to_save = ""
+                if "Attachments:" in data:
+                    # 获取第一个 JSON（在 Attachments 之前）
+                    parts = data.split("Attachments:")
+                    if parts:
+                        try:
+                            data_to_save= json.loads(parts[0].strip())
+                        except json.JSONDecodeError:
+                            pass
             else:
-                data_to_save = prepare_data_for_saving(data.replace("\n", ""))
+                data_to_save = ""
+
+                if "Attachments:" in data:
+                    # 获取第一个 JSON（在 Attachments 之前）
+                    parts = data.split("Attachments:")
+                    if parts:
+                        try:
+                            data_to_save= json.loads(parts[0].strip())
+                        except json.JSONDecodeError:
+                            pass
             # 添加元数据
             # 写入文件
 
