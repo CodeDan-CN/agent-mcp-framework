@@ -199,8 +199,8 @@ class MCPClient:
 async def main():
     client = MCPClient()
     try:
-        # await client.connect_to_server(["../tool/first/first_tree.py","../tool/node_filter/tree_node_filter.py","../tool/add_tree/index.js"])
-        await client.connect_to_server(["../tool/first_tool/first_tree.py"])
+        await client.connect_to_server(["../tool/first_tool/first_tree.py","../tool/node_filter/tree_node_filter.py","../tool/add_tree/index.js"])
+        # await client.connect_to_server([""])
 
         await client.chat_loop()
     finally:

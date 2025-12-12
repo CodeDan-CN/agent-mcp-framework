@@ -62,11 +62,32 @@ class NewsListStrategyGenerator:
             # 处理爬取到的数据列表页面
             # ✅ 关键修改：从Agent生成的results.json文件中提取结构化数据
             # structured_data = self._extract_final_result(result)
-            final_attachment_path = getattr(agent, 'file_system_path', None)
+            output = result.history[-1].result[-1].extracted_content
+
+            # 通过output中内容包含Attachments这个字符串，直接切割上下两篇，取上半篇
+            # 判断是否包含Attachments
+            if "Attachments" in output:
+                upper_part = output.split("Attachments", 1)[0]
+            else:
+                upper_part = output  # 不包含就直接用全部内容
+
+            final_json = json.loads(upper_part)
+
+            # 创建目录（如果不存在）
+            os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
+
+            # 写入 JSON 文件（UTF-8、格式化）
+            with open(self.output_path, "w", encoding="utf-8") as f:
+                json.dump(final_json, f, ensure_ascii=False, indent=4)
+
+            print(f"JSON 已成功写入：{self.output_path}")
+
+
+            # final_attachment_path = getattr(agent, 'file_system_path', None)
             # structured_data = self.get_extract_json(result)
             # 保存到你指定的输出文件
             # self._save_to_json(structured_data)
-            return f"{final_attachment_path}\\browseruse_agent_data\\results.json"
+            return self.output_path
         except Exception as e:
             print(f"❌ 策略生成失败: {e}")
             return self._get_fallback_strategy(website_url)
@@ -466,6 +487,7 @@ async def init_strategy(url: str,output_path):
 
     results = await asyncio.gather(*scraping_tasks)
     print(results)
+    return results
 
 
 ### website_url 为需要爬取的具体地址，
@@ -597,6 +619,6 @@ def get_prompt_txt(website_url: str, need_spider_all:bool = False):
             """
 
 if __name__ == '__main__':
-     url = "https://www.t-head.cn/"
+     url = "http://www.etlchip.com/"
      output_path="../tool/data.json"
      asyncio.run(init_strategy(url,output_path))

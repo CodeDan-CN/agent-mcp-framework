@@ -10,7 +10,8 @@ const urlMutex = new Mutex();
 // 确保 logs 目录存在
 const logsDir = path.join(__dirname, '../logs');
 
-let prefix_output_path = process.env.OUTPUT_PATH
+// let prefix_output_path = process.env.OUTPUT_PATH
+let prefix_output_path = "/Users/codedan/local/project/crawlee/agent-mcp-framework/tool/add_tree"
 
 
 if (!fs.existsSync(logsDir)) {
@@ -249,3 +250,8 @@ export async function crawlNavTree({
 
     return outputPath;
 }
+
+// await crawlNavTree({
+//     inputPath:'/Users/codedan/local/project/crawlee/agent-mcp-framework/file/data_scored1.json',
+//     level:1
+// });
